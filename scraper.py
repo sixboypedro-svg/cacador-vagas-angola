@@ -7,6 +7,10 @@ from supabase import create_client
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://qzuhxfugpmollvueqihk.supabase.co")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "sb_publishable_Z_t4cGcEgtLy3m-3QxMajg_leBgVLd-")
 
+# Configuração de Email (Serviço gratuito Resend / SendGrid ou SMTP)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+NOTIFICATION_EMAIL = os.getenv("NOTIFICATION_EMAIL")
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 HEADERS = {
@@ -91,11 +95,63 @@ def raspar_jobartis():
         print(f"❌ Erro no Jobartis: {e}")
     return vagas
 
+def raspar_careerjet():
+    url = "https://www.careerjet.co.ao/vagas-emprego-angola.html"
+    print("🔍 A raspar CareerJet Angola...")
+    vagas = []
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        artigos = soup.find_all(["article", "div", "a"])
+        titulos_vistos = set()
+
+        for item in artigos:
+            texto = item.text.strip()
+            if len(texto) > 10 and texto not in titulos_vistos and vaga_e_relevante(texto):
+                # Limpa quebras de linha excessivas
+                linhas = [l.strip() for l in texto.split("\n") if l.strip()]
+                titulo_limpo = linhas[0] if linhas else texto
+                if len(titulo_limpo) > 10 and titulo_limpo not in titulos_vistos and vaga_e_relevante(titulo_limpo):
+                    titulos_vistos.add(titulo_limpo)
+                    vagas.append({"title": titulo_limpo, "company": "CareerJet", "location": "Angola"})
+    except Exception as e:
+        print(f"❌ Erro no CareerJet: {e}")
+    return vagas
+
+def enviar_notificacao_email(novas_vagas):
+    if not RESEND_API_KEY or not NOTIFICATION_EMAIL:
+        print("ℹ️ Configuração de email não detetada nas variáveis de ambiente. Alertas por email ignorados.")
+        return
+
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    lista_vagas_html = "".join([f"<li><b>{v['title']}</b> - {v['company']}</li>" for v in novas_vagas])
+    
+    payload = {
+        "from": "Caçador de Vagas <onboarding@resend.dev>",
+        "to": [NOTIFICATION_EMAIL],
+        "subject": f"🚨 {len(novas_vagas)} Nova(s) Vaga(s) Encontrada(s)!",
+        "html": f"<h3>Novas vagas da tua área encontradas:</h3><ul>{lista_vagas_html}</ul>"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200:
+            print("📧 Alerta por e-mail enviado com sucesso!")
+        else:
+            print(f"⚠️ Erro ao enviar email: {response.text}")
+    except Exception as e:
+        print(f"❌ Falha ao conectar ao serviço de e-mail: {e}")
+
 if __name__ == "__main__":
     titulos_existentes = obter_titulos_existentes()
     print(f"📊 Vagas no banco: {len(titulos_existentes)}")
 
-    todas_vagas = raspar_ango_emprego() + raspar_jobartis()
+    todas_vagas = raspar_ango_emprego() + raspar_jobartis() + raspar_careerjet()
     print(f"🎯 Vagas filtradas da área capturadas: {len(todas_vagas)}")
 
     novas_vagas = [v for v in todas_vagas if v["title"].strip().lower() not in titulos_existentes]
@@ -103,12 +159,18 @@ if __name__ == "__main__":
     if novas_vagas:
         print(f"🚀 A enviar {len(novas_vagas)} novas vagas qualificadas...")
         sucesso = 0
+        vagas_salvas = []
         for vaga in novas_vagas:
             try:
                 supabase.table("jobs").insert(vaga).execute()
                 sucesso += 1
+                vagas_salvas.append(vaga)
             except Exception as err:
                 print(f"⚠️ Erro ao inserir: {err}")
+        
         print(f"✅ Concluído! {sucesso} vagas qualificadas salvas.")
+        
+        # Envia email com os alertas das novas vagas
+        enviar_notificacao_email(vagas_salvas)
     else:
         print("✨ Nenhuma vaga nova da tua área encontrada neste momento.")
