@@ -1,0 +1,26 @@
+name: Executar Scraper Diário
+
+on:
+  schedule:
+    - cron: '0 8,16 * * *' # Executa automaticamente às 08:00 e 16:00 (UTC)
+  workflow_dispatch: # Permite executar manualmente quando quiseres
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: |
+          pip install -r requirements.txt
+
+      - name: Executar Scraper
+        run: |
+          python scraper.py
