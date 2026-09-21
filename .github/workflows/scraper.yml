@@ -1,4 +1,4 @@
-name: Executar Scraper Diário
+name: Job Hunter
 
 on:
   schedule:
@@ -22,5 +22,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Executar Scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
           python scraper.py
