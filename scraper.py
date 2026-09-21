@@ -3,11 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 from supabase import create_client
 
-# Conexão com Supabase
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://qzuhxfugpmollvueqihk.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "sb_publishable_Z_t4cGcEgtLy3m-3QxMajg_leBgVLd-")
+# Conexão Supabase com fallback garantido
+SUPABASE_URL = os.getenv("SUPABASE_URL") or "https://qzuhxfugpmollvueqihk.supabase.co"
+SUPABASE_KEY = os.getenv("SUPABASE_KEY") or "sb_publishable_Z_t4cGcEgtLy3m-3QxMajg_leBgVLd-"
 
-# Configuração de Email (Serviço gratuito Resend / SendGrid ou SMTP)
+# Configuração de Email
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 NOTIFICATION_EMAIL = os.getenv("NOTIFICATION_EMAIL")
 
