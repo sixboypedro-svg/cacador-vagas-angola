@@ -4,15 +4,28 @@ from bs4 import BeautifulSoup
 from supabase import create_client
 
 # -----------------------------------------------------------------------------
-# Configuração do Supabase (com a chave anon real)
+# Configuração do Supabase (com validação rígida contra erros de Secrets)
 # -----------------------------------------------------------------------------
-SUPABASE_URL = (os.getenv("SUPABASE_URL") or "").strip() or "https://qzuhxfugpmollvueqihk.supabase.co"
-SUPABASE_KEY = (os.getenv("SUPABASE_KEY") or "").strip() or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6dWh4ZnVncG1vbGx2dWVxaWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM5MDcsImV4cCI6MjEwNTU1OTkwN30.GfvSYi2oykLBZG2N5ikWqKwrmNhy-RzV0u9E1JvPbqA"
+raw_url = os.getenv("SUPABASE_URL", "").strip()
+raw_key = os.getenv("SUPABASE_KEY", "").strip()
+
+# Garante que a URL é válida e começa por "http"
+if not raw_url or not raw_url.startswith("http"):
+    SUPABASE_URL = "https://qzuhxfugpmollvueqihk.supabase.co"
+else:
+    SUPABASE_URL = raw_url
+
+# Garante que a chave é a JWT oficial (anon key)
+if not raw_key or len(raw_key) < 50:
+    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6dWh4ZnVncG1vbGx2dWVxaWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM5MDcsImV4cCI6MjEwNTU1OTkwN30.GfvSYi2oykLBZG2N5ikWqKwrmNhy-RzV0u9E1JvPbqA"
+else:
+    SUPABASE_KEY = raw_key
 
 # Configuração de Email
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 NOTIFICATION_EMAIL = os.getenv("NOTIFICATION_EMAIL")
 
+print(f"🔗 Conectando ao Supabase na URL: {SUPABASE_URL}")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 HEADERS = {
