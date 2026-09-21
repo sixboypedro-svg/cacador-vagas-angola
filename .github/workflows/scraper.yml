@@ -2,8 +2,8 @@ name: Job Hunter
 
 on:
   schedule:
-    - cron: '0 8,16 * * *' # Executa automaticamente às 08:00 e 16:00 (UTC)
-  workflow_dispatch: # Permite executar manualmente quando quiseres
+    - cron: '0 8,16 * * *'
+  workflow_dispatch:
 
 jobs:
   run-scraper:
