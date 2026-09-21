@@ -4,14 +4,10 @@ from bs4 import BeautifulSoup
 from supabase import create_client
 
 # -----------------------------------------------------------------------------
-# Configuração Supabase
+# Configuração do Supabase (com a chave anon real)
 # -----------------------------------------------------------------------------
 SUPABASE_URL = (os.getenv("SUPABASE_URL") or "").strip() or "https://qzuhxfugpmollvueqihk.supabase.co"
-SUPABASE_KEY = (os.getenv("SUPABASE_KEY") or "").strip() or "COLA_AQUI_A_TUA_CHAVE_ANON_REAL"
-
-# Garantia de validação da URL antes de conectar
-if not SUPABASE_URL.startswith("http://") and not SUPABASE_URL.startswith("https://"):
-    SUPABASE_URL = f"https://{SUPABASE_URL}"
+SUPABASE_KEY = (os.getenv("SUPABASE_KEY") or "").strip() or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6dWh4ZnVncG1vbGx2dWVxaWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM5MDcsImV4cCI6MjEwNTU1OTkwN30.GfvSYi2oykLBZG2N5ikWqKwrmNhy-RzV0u9E1JvPbqA"
 
 # Configuração de Email
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
@@ -114,7 +110,6 @@ def raspar_careerjet():
         for item in artigos:
             texto = item.text.strip()
             if len(texto) > 10 and texto not in titulos_vistos and vaga_e_relevante(texto):
-                # Limpa quebras de linha excessivas
                 linhas = [l.strip() for l in texto.split("\n") if l.strip()]
                 titulo_limpo = linhas[0] if linhas else texto
                 if len(titulo_limpo) > 10 and titulo_limpo not in titulos_vistos and vaga_e_relevante(titulo_limpo):
@@ -175,8 +170,6 @@ if __name__ == "__main__":
                 print(f"⚠️ Erro ao inserir: {err}")
         
         print(f"✅ Concluído! {sucesso} vagas qualificadas salvas.")
-        
-        # Envia email com os alertas das novas vagas
         enviar_notificacao_email(vagas_salvas)
     else:
         print("✨ Nenhuma vaga nova da tua área encontrada neste momento.")
