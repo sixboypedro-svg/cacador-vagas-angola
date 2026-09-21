@@ -3,9 +3,15 @@ import requests
 from bs4 import BeautifulSoup
 from supabase import create_client
 
-# Conexão Supabase com fallback garantido
-SUPABASE_URL = os.getenv("SUPABASE_URL") or "https://qzuhxfugpmollvueqihk.supabase.co"
-SUPABASE_KEY = os.getenv("SUPABASE_KEY") or "sb_publishable_Z_t4cGcEgtLy3m-3QxMajg_leBgVLd-"
+# -----------------------------------------------------------------------------
+# Configuração Supabase
+# -----------------------------------------------------------------------------
+SUPABASE_URL = (os.getenv("SUPABASE_URL") or "").strip() or "https://qzuhxfugpmollvueqihk.supabase.co"
+SUPABASE_KEY = (os.getenv("SUPABASE_KEY") or "").strip() or "COLA_AQUI_A_TUA_CHAVE_ANON_REAL"
+
+# Garantia de validação da URL antes de conectar
+if not SUPABASE_URL.startswith("http://") and not SUPABASE_URL.startswith("https://"):
+    SUPABASE_URL = f"https://{SUPABASE_URL}"
 
 # Configuração de Email
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
